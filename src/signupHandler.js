@@ -2,7 +2,7 @@
 import admin from 'firebase-admin';
 
 // Initialize Firebase Admin SDK (you need to download the service account key from Firebase Console)
-import serviceAccount from './path-to-your-service-account-key.json';
+import serviceAccount from 'servacckey.json';
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
