@@ -1,7 +1,7 @@
 import express from "express";
 import bodyParser from 'body-parser';
-import signupRoute from 'C:\Users\haari\OneDrive\Desktop\HydroTrack\Files(Backend)\src\signupRoute.js';
-
+import signupRoute from './signupRoute';
+import { authenticateUser } from './loginBackend';
 
 const app = express();
 const PORT = 3000;
@@ -23,3 +23,18 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const userData = await authenticateUser(username, password);
+    res.status(200).json(userData);
+  } catch (error) {
+    res.status(401).json({ error: error.message });
+  }
+});
+
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});

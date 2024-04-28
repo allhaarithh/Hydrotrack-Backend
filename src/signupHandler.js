@@ -11,13 +11,13 @@ import db from "./firebase";
 
 
 // Handler function for signing up a new user
-const signUpUser = async (Email, Name, Password) => {
+const signUpUser = async (Username, Password, phone_no) => {
   try {
     // Add user data to Firestore
     const userRef = await collection(db,'User').addDoc({
-      Email,
-      Name, // Note: For security, consider encrypting the password before storing
-      Password,
+      Username,
+      Password, // Note: For security, consider encrypting the password before storing
+      phone_no,
     });
 
     console.log('User added with ID: ', userRef.id);
