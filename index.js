@@ -1,7 +1,7 @@
 import express from "express";
 import bodyParser from 'body-parser';
-import signupRoute from './signupRoute';
-import { authenticateUser } from './loginBackend';
+import signupRoute from './src/signupRoute';
+import { authenticateUser } from './src/loginBackend';
 
 const app = express();
 const PORT = 3000;
