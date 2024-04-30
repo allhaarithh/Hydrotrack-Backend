@@ -11,6 +11,7 @@ app.use(bodyParser.json());
 
 // Routes
 app.use('/api', signupRoute);
+app.use('/forgotpassword', forgotPasswordHandler);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
