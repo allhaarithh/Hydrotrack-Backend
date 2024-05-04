@@ -19,6 +19,30 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: 'Internal server error' });
 });
 
+// Admin login route handler
+app.post('/api/admin/login', async (req, res) => {
+  const { adminId, password } = req.body;
+
+  try {
+    const adminRef = admin.firestore().collection('Admin');
+    const snapshot = await adminRef.where('adminId', '==', adminId).limit(1).get();
+
+    if (snapshot.empty) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const adminData = snapshot.docs[0].data();
+    if (adminData.password !== password) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    return res.status(200).json({ message: 'Login successful' });
+  } catch (error) {
+    console.error('Error authenticating admin:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
