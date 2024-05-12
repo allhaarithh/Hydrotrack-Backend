@@ -1,13 +1,12 @@
 import express from "express";
 import bodyParser from 'body-parser';
-import signupRoute from './src/signupRoute';
-import { authenticateUser } from './src/loginBackend';
+import signupRoute from './src/signupRoute.js';
+import db from './src/firebase.js'
+import forgotPasswordHandler from './src/forgotpasswordHandler.js'
 
 const app = express();
 const PORT = 3000;
 
-// Initialize Firestore database
-const db = admin.firestore();
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -21,6 +20,31 @@ app.use('/forgotpassword', forgotPasswordHandler);
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ success: false, message: 'Internal server error' });
+});
+
+//LoginHandler
+app.get("/userlogin", async (req, res) => {
+  // Authenticate user based on the username and password provided
+  const { username, password } = req.body;
+  try {
+    const collectionRef = collection(db, "User");
+    const q = query(collectionRef, where("Login", "==", username));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      const userData = querySnapshot.docs[0].data();
+      if (userData.Password === password) {
+        res.send("Logged In Successfully");
+      } else {
+        console.log(userData.password);
+        res.send("Incorrect Password");
+      }
+    } else {
+      res.send("Login Unsuccessfull");
+    }
+  } catch (error) {
+    console.error("Error authenticating user:", error);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 // Admin login route handler
@@ -97,16 +121,7 @@ app.listen(PORT, () => {
 
 
 
-app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
 
-  try {
-    const userData = await authenticateUser(username, password);
-    res.status(200).json(userData);
-  } catch (error) {
-    res.status(401).json({ error: error.message });
-  }
-});
 
 
 app.listen(PORT, () => {

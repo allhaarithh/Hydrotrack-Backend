@@ -1,6 +1,6 @@
 // backend/signupRoute.js
 import express from 'express';
-import signUpUser from './signupHandler';
+import signUpUser from './signupHandler.js';
 
 const router = express.Router();
 

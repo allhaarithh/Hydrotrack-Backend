@@ -1,13 +1,5 @@
-// backend/signupHandler.js
-import admin from 'firebase-admin';
 
-// Initialize Firebase Admin SDK (you need to download the service account key from Firebase Console)
-import serviceAccount from 'servacc.json';
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
-
-import db from "./firebase";
+import db from "./firebase.js";
 
 
 // Handler function for signing up a new user

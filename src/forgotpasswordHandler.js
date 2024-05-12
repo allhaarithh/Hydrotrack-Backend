@@ -1,6 +1,6 @@
 // forgotPasswordHandler.js
 import express from 'express';
-import db from './firebase'; // Import Firestore instance
+import db from './firebase.js'; // Import Firestore instance
 
 const router = express.Router();
 
