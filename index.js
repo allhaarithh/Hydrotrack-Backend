@@ -13,8 +13,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 // Routes
-app.use('/api', signupRoute);
-app.use('/forgotpassword', forgotPasswordHandler);
+app.use('/signup', signupRoute);
+app.use('/forgot', forgotPasswordHandler);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -23,7 +23,7 @@ app.use((err, req, res, next) => {
 });
 
 //LoginHandler
-app.get("/userlogin", async (req, res) => {
+app.get("/login/user", async (req, res) => {
   // Authenticate user based on the username and password provided
   const { username, password } = req.body;
   try {
@@ -48,7 +48,7 @@ app.get("/userlogin", async (req, res) => {
 });
 
 // Admin login route handler
-app.post('/api/admin/login', async (req, res) => {
+app.post('/login/admin', async (req, res) => {
   const { adminId, password } = req.body;
 
   try {
@@ -72,7 +72,7 @@ app.post('/api/admin/login', async (req, res) => {
 });
 
 // Endpoint for handling feedback form submissions
-app.post('/submit-feedback', async (req, res) => {
+app.post('/feedback', async (req, res) => {
   const { name, email, feedback } = req.body;
 
   try {
@@ -114,16 +114,6 @@ app.post('/submit-feedback', async (req, res) => {
 });
 
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
-
-
-
-
-
-
-
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
