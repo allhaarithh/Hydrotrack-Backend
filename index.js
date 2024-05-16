@@ -1,8 +1,7 @@
 import express from "express";
 import bodyParser from 'body-parser';
 import db from './src/firebase.js';
-import forgotPasswordHandler from './src/forgotpasswordHandler.js';
-import { collection, query, where, getDocs, addDoc} from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, updateDoc, doc} from 'firebase/firestore';
 import cors from 'cors';
 import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
@@ -25,8 +24,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.json()); // Middleware to parse JSON request bodies
 
-// Routes
-app.use('/forgot', forgotPasswordHandler);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -150,6 +147,42 @@ app.post('/signup', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
+
+// Route to handle password reset
+app.post('/forgot', async (req, res) => {
+  const { username, newPassword } = req.body;
+
+  try {
+    // Validate username
+    if (!username) {
+      return res.status(400).json({ status: false, message: 'Username is required.' });
+    }
+
+    // Query Firestore for the user by username
+    const collectionRef = collection(db, 'User');
+    const q = query(collectionRef, where('Username', '==', username));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      return res.status(404).json({ status: false, message: 'User not found.' });
+    }
+
+    // Assuming there's only one user with this username (unique username constraint)
+    const userDoc = snapshot.docs[0];
+    const userId = userDoc.id;
+
+    // Update user's password in Firestore using updateDoc
+    const userDocRef = doc(db, 'User', userId);
+    await updateDoc(userDocRef, { Password: newPassword });
+
+    res.status(200).json({ status: true, message: 'Password reset successful!' });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({ status: false, message: 'An error occurred. Please try again later.' });
+  }
+});
+
 
 // Endpoint for handling feedback form submissions
 app.post('/feedback', async (req, res) => {
