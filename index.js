@@ -1,19 +1,29 @@
 import express from "express";
 import bodyParser from 'body-parser';
-import signupRoute from './src/signupRoute.js';
-import db from './src/firebase.js'
-import forgotPasswordHandler from './src/forgotpasswordHandler.js'
+import db from './src/firebase.js';
+import forgotPasswordHandler from './src/forgotpasswordHandler.js';
+import { collection, query, where, getDocs, addDoc} from 'firebase/firestore';
+import cors from 'cors';
 
 const app = express();
-const PORT = 3000;
+const PORT = 4000;
+
+// Enable CORS for all routes
+app.use(cors());
+const corsOptions = {
+  origin: 'http://localhost:3000', // Specify the allowed origin
+  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
+};
+
+app.use(cors(corsOptions));
 
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(express.json()); // Middleware to parse JSON request bodies
 
 // Routes
-app.use('/signup', signupRoute);
 app.use('/forgot', forgotPasswordHandler);
 
 // Error handling middleware
@@ -23,23 +33,23 @@ app.use((err, req, res, next) => {
 });
 
 //LoginHandler
-app.get("/login/user", async (req, res) => {
-  // Authenticate user based on the username and password provided
+app.post("/login/user", async (req, res) => {
   const { username, password } = req.body;
   try {
     const collectionRef = collection(db, "User");
-    const q = query(collectionRef, where("Login", "==", username));
+    const q = query(collectionRef, where("Username", "==", username));
     const querySnapshot = await getDocs(q);
+
     if (!querySnapshot.empty) {
       const userData = querySnapshot.docs[0].data();
+      console.log(userData)
       if (userData.Password === password) {
-        res.send("Logged In Successfully");
+        res.json({message:"Logged In Successfully", status : true});
       } else {
-        console.log(userData.password);
-        res.send("Incorrect Password");
+        res.json({message:"Incorrect Password",status:false});
       }
     } else {
-      res.send("Login Unsuccessfull");
+      res.send({message:"Login Unsuccessful",status:false});
     }
   } catch (error) {
     console.error("Error authenticating user:", error);
@@ -47,27 +57,49 @@ app.get("/login/user", async (req, res) => {
   }
 });
 
+
 // Admin login route handler
 app.post('/login/admin', async (req, res) => {
   const { adminId, password } = req.body;
 
   try {
-    const adminRef = admin.firestore().collection('Admin');
-    const snapshot = await adminRef.where('adminId', '==', adminId).limit(1).get();
+    const collectionRef = collection(db, "Admin");
+    const q = query(collectionRef, where("adminID", "==", adminId ));
+    const querySnapshot = await getDocs(q);
 
-    if (snapshot.empty) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    if (!querySnapshot.empty) {
+      const adminData = querySnapshot.docs[0].data();
+      console.log(adminData)
+      if (adminData.password === password) {
+        res.json({message:"Logged In Successfully",status:true});
+      } else {
+        res.json({message:"Incorrect Password",status:false});
+      }
+    } else {
+      res.json({message:"Login failed",status:false});
     }
-
-    const adminData = snapshot.docs[0].data();
-    if (adminData.password !== password) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    return res.status(200).json({ message: 'Login successful' });
   } catch (error) {
-    console.error('Error authenticating admin:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error("Error authenticating user:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+//Signup Handler
+app.post('/signup', async (req, res) => {
+  const { username, password, phoneNumber } = req.body;
+
+  try {
+    const collectionRef = collection(db, 'User');
+    await addDoc(collectionRef, {
+      Username: username,
+      Password: password,
+      phone_no: phoneNumber,
+    });
+    res.send('Signup successful');
+
+  } catch (error) {
+    console.error('Error during signup:', error);
+    res.status(500).send('Internal Server Error');
   }
 });
 
