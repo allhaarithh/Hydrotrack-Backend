@@ -1,11 +1,11 @@
 // forgotPasswordHandler.js
 import express from 'express';
-import db from './firebase'; // Import Firestore instance
+import db from './firebase.js'; // Import Firestore instance
 
 const router = express.Router();
 
 // Route for handling password reset request
-router.post('/forgotpassword', async (req, res) => {
+router.post('/forgot', async (req, res) => {
   const { username, newPassword, confirmPassword } = req.body;
 
   try {
