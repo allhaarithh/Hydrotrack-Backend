@@ -48,15 +48,9 @@ app.post('/water-sales', upload.single('certificate'), async (req, res) => {
   const file = req.file;
 
   try {
-    let fileURL = '';
+   
 
-    if (file) {
-      const blob = storage.ref().child(`certificates/${uuidv4()}_${file.originalname}`);
-      const blobSnapshot = await blob.put(file.buffer, { contentType: file.mimetype });
-
-      fileURL = await blobSnapshot.ref.getDownloadURL();
-    }
-
+  
     // Save water source data to Firestore
     await db.collection('watersources').add({
       Name: name,
