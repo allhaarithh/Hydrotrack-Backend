@@ -140,13 +140,15 @@ app.post('/signup', async (req, res) => {
       Password: password,
       phone_no: phoneNumber,
     });
-    res.send('Signup successful');
+    return res.status(200).json({ status: true, message: 'Signup successful' });
 
   } catch (error) {
     console.error('Error during signup:', error);
-    res.status(500).send('Internal Server Error');
+    return res.status(500).json({ status: false, message: 'Internal Server Error' });
   }
 });
+
+
 
 
 // Route to handle password reset
