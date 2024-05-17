@@ -1,9 +1,10 @@
 import express from "express";
 import bodyParser from 'body-parser';
 import db from './src/firebase.js';
-import forgotPasswordHandler from './src/forgotpasswordHandler.js';
-import { collection, query, where, getDocs, addDoc} from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, updateDoc, doc} from 'firebase/firestore';
 import cors from 'cors';
+import multer from 'multer';
+import { v4 as uuidv4 } from 'uuid';
 
 const app = express();
 const PORT = 4000;
@@ -23,8 +24,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.json()); // Middleware to parse JSON request bodies
 
-// Routes
-app.use('/forgot', forgotPasswordHandler);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -32,11 +31,50 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: 'Internal server error' });
 });
 
+
+//Uploading Function 
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5 MB file size limit
+  }
+});
+
+
+//Commercial Page Handler
+
+app.post('/water-sales', upload.single('certificate'), async (req, res) => {
+  const { name, phoneNumber, email, price, source, address, additionalInfo } = req.body;
+  const file = req.file;
+
+  try {
+   
+
+  
+    // Save water source data to Firestore
+    await db.collection('watersources').add({
+      Name: name,
+      PhoneNumber: phoneNumber,
+      Email: email,
+      Price: price,
+      Source: source,
+      Address: address,
+      Certificate: fileURL || '', // Use file URL if available, otherwise empty string
+      AdditionalInfo: additionalInfo
+    });
+
+    res.json({ message: "Water source submitted successfully.", status: true });
+  } catch (error) {
+    console.error('Error submitting water source:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 //LoginHandler
 app.post("/login/user", async (req, res) => {
   const { username, password } = req.body;
   try {
-    const collectionRef = collection(db, "User");
+    const collectionRef = collection(db, "User"); // db should be a Firestore instance
     const q = query(collectionRef, where("Username", "==", username));
     const querySnapshot = await getDocs(q);
 
@@ -44,18 +82,19 @@ app.post("/login/user", async (req, res) => {
       const userData = querySnapshot.docs[0].data();
       console.log(userData)
       if (userData.Password === password) {
-        res.json({message:"Logged In Successfully", status : true});
+        res.json({ message: "Logged In Successfully", status: true });
       } else {
-        res.json({message:"Incorrect Password",status:false});
+        res.json({ message: "Incorrect Password", status: false });
       }
     } else {
-      res.send({message:"Login Unsuccessful",status:false});
+      res.send({ message: "Login Unsuccessful", status: false });
     }
   } catch (error) {
     console.error("Error authenticating user:", error);
     res.status(500).send("Internal Server Error");
   }
 });
+
 
 
 // Admin login route handler
@@ -95,53 +134,67 @@ app.post('/signup', async (req, res) => {
       Password: password,
       phone_no: phoneNumber,
     });
-    res.send('Signup successful');
+    return res.status(200).json({ status: true, message: 'Signup successful' });
 
   } catch (error) {
     console.error('Error during signup:', error);
-    res.status(500).send('Internal Server Error');
+    return res.status(500).json({ status: false, message: 'Internal Server Error' });
   }
 });
+
+
+
+
+// Route to handle password reset
+app.post('/forgot', async (req, res) => {
+  const { username, newPassword } = req.body;
+
+  try {
+    // Validate username
+    if (!username) {
+      return res.status(400).json({ status: false, message: 'Username is required.' });
+    }
+
+    // Query Firestore for the user by username
+    const collectionRef = collection(db, 'User');
+    const q = query(collectionRef, where('Username', '==', username));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      return res.status(404).json({ status: false, message: 'User not found.' });
+    }
+
+    // Assuming there's only one user with this username (unique username constraint)
+    const userDoc = snapshot.docs[0];
+    const userId = userDoc.id;
+
+    // Update user's password in Firestore using updateDoc
+    const userDocRef = doc(db, 'User', userId);
+    await updateDoc(userDocRef, { Password: newPassword });
+
+    res.status(200).json({ status: true, message: 'Password reset successful!' });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({ status: false, message: 'An error occurred. Please try again later.' });
+  }
+});
+
 
 // Endpoint for handling feedback form submissions
 app.post('/feedback', async (req, res) => {
   const { name, email, feedback } = req.body;
 
   try {
-    // Add feedback to Firestore
-    const feedbackRef = await db.collection('feedback').add({
-      name,
-      email,
-      feedback,
-      timestamp: admin.firestore.FieldValue.serverTimestamp()
+    const feedRef = collection(db,"Feedback") 
+    await addDoc(feedRef,{
+      Name: name,
+      Email: email,
+      Feedback: feedback
     });
-
-    // Send email notification
-    const transporter = nodemailer.createTransport({
-      // Configure your SMTP settings or use a service like Gmail
-      host: 'smtp.example.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: 'your-email@example.com',
-        pass: 'your-email-password'
-      }
-    });
-
-    const mailOptions = {
-      from: 'your-email@example.com',
-      to: 'admin@example.com',
-      subject: 'New Feedback Submitted',
-      text: `Name: ${name}\nEmail: ${email}\nFeedback: ${feedback}`
-    };
-
-    await transporter.sendMail(mailOptions);
-
-    // Send response to client
-    res.status(200).json({ message: 'Feedback submitted successfully' });
+    res.json({ message: "Feedback submitted successfully.", status: true });
   } catch (error) {
-    console.error('Error submitting feedback:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error submitting feedback:", error);
+    res.status(500).send("Internal Server Error");
   }
 });
 
