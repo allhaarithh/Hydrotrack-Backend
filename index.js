@@ -123,17 +123,27 @@ app.post('/login/admin', async (req, res) => {
   }
 });
 
+
 //Signup Handler
 app.post('/signup', async (req, res) => {
   const { username, password, phoneNumber } = req.body;
 
   try {
-    const collectionRef = collection(db, 'User');
-    await addDoc(collectionRef, {
+    if (!username || !password || !phoneNumber) {
+      return res.status(400).json({ status: false, message: 'Username, password and phone no. are required' });
+    }
+
+    if (phoneNumber && !/^\d{10}$/.test(phoneNumber)) {
+      return res.status(400).json({ status: false, message: 'Phone number must be 10 digits long' });
+    }
+
+    const userRef = collection(db, 'User');
+    await addDoc(userRef, {
       Username: username,
       Password: password,
       phone_no: phoneNumber,
     });
+
     return res.status(200).json({ status: true, message: 'Signup successful' });
 
   } catch (error) {
@@ -180,21 +190,34 @@ app.post('/forgot', async (req, res) => {
 });
 
 
-// Endpoint for handling feedback form submissions
-app.post('/feedback', async (req, res) => {
-  const { name, email, feedback } = req.body;
+//Water Request Page Handler
+app.post('/request', async (req, res) => {
+  const { name, email, phonenumber, latitude, longitude, description, additional_comments } = req.body;
 
   try {
-    const feedRef = collection(db,"Feedback") 
-    await addDoc(feedRef,{
-      Name: name,
-      Email: email,
-      Feedback: feedback
+    if (!name || !email || !phonenumber || !latitude || !longitude || !description) {
+      return res.status(400).json({ status: false, message: 'Please fill in all required fields' });
+    }
+
+    if (phonenumber && !/^\d{10}$/.test(phonenumber)) {
+      return res.status(400).json({ status: false, message: 'Phone number must be 10 digits long' });
+    }
+
+    const requestRef = collection(db,'Requests');
+    await addDoc(requestRef, {
+      name: name,
+      email: email,
+      phonenumber: phonenumber,
+      latitude: latitude,
+      longitude: longitude,
+      description: description,
+      additional_comments: additional_comments || '' // Set default value if additional_comments is not provided
     });
-    res.json({ message: "Feedback submitted successfully.", status: true });
+
+    return res.status(201).json({ status: true, message: 'Request submitted successfully' });
   } catch (error) {
-    console.error("Error submitting feedback:", error);
-    res.status(500).send("Internal Server Error");
+    console.error('Error submitting request:', error);
+    return res.status(500).json({ status: false, message: 'An error occurred. Please try again later.' });
   }
 });
 
