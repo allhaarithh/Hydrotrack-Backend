@@ -4,7 +4,6 @@ import db from './src/firebase.js';
 import { collection, query, where, getDocs, addDoc, updateDoc, doc} from 'firebase/firestore';
 import cors from 'cors';
 import multer from 'multer';
-import { v4 as uuidv4 } from 'uuid';
 
 const app = express();
 const PORT = 4000;
