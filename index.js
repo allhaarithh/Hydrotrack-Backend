@@ -96,7 +96,6 @@ app.post("/login/user", async (req, res) => {
 });
 
 
-
 // Admin login route handler
 app.post('/login/admin', async (req, res) => {
   const { adminId, password } = req.body;
