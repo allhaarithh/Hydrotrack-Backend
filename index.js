@@ -219,6 +219,31 @@ app.post('/request', async (req, res) => {
   }
 });
 
+
+// POST endpoint to handle feedback submission
+app.post('/feedback', async (req, res) => {
+  const { name, email, feedback } = req.body;
+
+  if (!name || !email || !feedback) {
+    return res.status(400).json({ message: 'Please provide all required fields.' });
+  }
+
+  try {
+    const feedbackRef = collection(db, 'Feedback');
+    await addDoc(feedbackRef, {
+      Name: name,
+      Email: email,
+      Feedback: feedback,
+    });
+
+    return res.status(200).json({ status: true, message: 'Feedback submitted.' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: false, message: 'Error submitting feedback.' });
+  }
+})
+
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
