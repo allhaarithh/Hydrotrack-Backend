@@ -4,7 +4,6 @@ import db from './src/firebase.js';
 import { collection, query, where, getDocs, addDoc, updateDoc, doc} from 'firebase/firestore';
 import cors from 'cors';
 import multer from 'multer';
-import { v4 as uuidv4 } from 'uuid';
 
 const app = express();
 const PORT = 4000;
@@ -94,7 +93,6 @@ app.post("/login/user", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
-
 
 
 // Admin login route handler
@@ -220,6 +218,31 @@ app.post('/request', async (req, res) => {
     return res.status(500).json({ status: false, message: 'An error occurred. Please try again later.' });
   }
 });
+
+
+// POST endpoint to handle feedback submission
+app.post('/feedback', async (req, res) => {
+  const { name, email, feedback } = req.body;
+
+  if (!name || !email || !feedback) {
+    return res.status(400).json({ message: 'Please provide all required fields.' });
+  }
+
+  try {
+    const feedbackRef = collection(db, 'Feedback');
+    await addDoc(feedbackRef, {
+      Name: name,
+      Email: email,
+      Feedback: feedback,
+    });
+
+    return res.status(200).json({ status: true, message: 'Feedback submitted.' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: false, message: 'Error submitting feedback.' });
+  }
+})
+
 
 // Start the server
 app.listen(PORT, () => {
