@@ -188,26 +188,17 @@ app.post('/forgot', async (req, res) => {
 });
 
 
-//Water Request Page Handler
+// Water Request Page Handler
 app.post('/request', async (req, res) => {
-  const { name, email, phonenumber, latitude, longitude, description, additional_comments } = req.body;
-
+  const { name, email, phonenumber, address, description, additional_comments } = req.body;
+  
   try {
-    if (!name || !email || !phonenumber || !latitude || !longitude || !description) {
-      return res.status(400).json({ status: false, message: 'Please fill in all required fields' });
-    }
-
-    if (phonenumber && !/^\d{10}$/.test(phonenumber)) {
-      return res.status(400).json({ status: false, message: 'Phone number must be 10 digits long' });
-    }
-
-    const requestRef = collection(db,'Requests');
+    const requestRef = collection(db, 'Requests');
     await addDoc(requestRef, {
       name: name,
       email: email,
       phonenumber: phonenumber,
-      latitude: latitude,
-      longitude: longitude,
+      Location_Address: address,
       description: description,
       additional_comments: additional_comments || '' // Set default value if additional_comments is not provided
     });
@@ -218,6 +209,7 @@ app.post('/request', async (req, res) => {
     return res.status(500).json({ status: false, message: 'An error occurred. Please try again later.' });
   }
 });
+
 
 
 // POST endpoint to handle feedback submission
