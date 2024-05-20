@@ -190,7 +190,7 @@ app.post('/forgot', async (req, res) => {
 
 // Water Request Page Handler
 app.post('/request', async (req, res) => {
-  const { name, email, phonenumber, address, description, additional_comments } = req.body;
+  const { name, email, phonenumber, address, description, additional_comments, approval } = req.body;
   
   try {
     const requestRef = collection(db, 'Requests');
@@ -200,7 +200,8 @@ app.post('/request', async (req, res) => {
       phonenumber: phonenumber,
       Location_Address: address,
       description: description,
-      additional_comments: additional_comments || '' // Set default value if additional_comments is not provided
+      additional_comments: additional_comments || '', // Set default value if additional_comments is not provided
+      approval: approval
     });
 
     return res.status(201).json({ status: true, message: 'Request submitted successfully' });
