@@ -40,34 +40,7 @@ const upload = multer({
 });
 
 
-//Commercial Page Handler
 
-app.post('/water-sales', upload.single('certificate'), async (req, res) => {
-  const { name, phoneNumber, email, price, source, address, additionalInfo } = req.body;
-  const file = req.file;
-
-  try {
-   
-
-  
-    // Save water source data to Firestore
-    await db.collection('watersources').add({
-      Name: name,
-      PhoneNumber: phoneNumber,
-      Email: email,
-      Price: price,
-      Source: source,
-      Address: address,
-      Certificate: fileURL || '', // Use file URL if available, otherwise empty string
-      AdditionalInfo: additionalInfo
-    });
-
-    res.json({ message: "Water source submitted successfully.", status: true });
-  } catch (error) {
-    console.error('Error submitting water source:', error);
-    res.status(500).send('Internal Server Error');
-  }
-});
 
 //LoginHandler
 app.post("/login/user", async (req, res) => {
