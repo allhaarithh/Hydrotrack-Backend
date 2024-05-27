@@ -97,10 +97,10 @@ app.post('/login/admin', async (req, res) => {
 
 //Signup Handler
 app.post('/signup', async (req, res) => {
-  const { username, password, phoneNumber } = req.body;
+  const { username, password, phoneNumber, ifscCode, accountNumber } = req.body;
 
   try {
-    if (!username || !password || !phoneNumber) {
+    if (!username || !password || !phoneNumber || !ifscCode || !accountNumber) {
       return res.status(400).json({ status: false, message: 'Username, password and phone no. are required' });
     }
 
@@ -113,6 +113,8 @@ app.post('/signup', async (req, res) => {
       Username: username,
       Password: password,
       phone_no: phoneNumber,
+      IFSC_Code: ifscCode,
+      AccNo: accountNumber
     });
 
     return res.status(200).json({ status: true, message: 'Signup successful' });
