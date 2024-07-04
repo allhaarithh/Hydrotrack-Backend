@@ -109,7 +109,15 @@ app.post('/signup', async (req, res) => {
       return res.status(400).json({ status: false, message: 'Phone number must be 10 digits long' });
     }
 
-    const userRef = collection(db, 'User');
+     // Check if username already exists
+     const userRef = collection(db, 'User');
+     const q = query(userRef, where("Username", "==", username));
+     const querySnapshot = await getDocs(q);
+     if (!querySnapshot.empty) {
+       // Username already exists
+       return res.status(400).json({ status: false, message: 'Username already exists' });
+     }
+
     await addDoc(userRef, {
       Username: username,
       Password: password,
