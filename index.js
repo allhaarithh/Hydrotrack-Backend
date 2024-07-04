@@ -51,10 +51,11 @@ app.post("/login/user", async (req, res) => {
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
-      const userData = querySnapshot.docs[0].data();
+      const userDoc = querySnapshot.docs[0];
+      const userData = userDoc.data();
       console.log(userData)
       if (userData.Password === password) {
-        res.json({ message: "Logged In Successfully", status: true });
+        res.json({ message: "Logged In Successfully", status: true, userId: userDoc.id });
       } else {
         res.json({ message: "Incorrect Password", status: false });
       }
@@ -62,8 +63,8 @@ app.post("/login/user", async (req, res) => {
       res.send({ message: "Login Unsuccessful", status: false });
     }
   } catch (error) {
-    console.error("Error authenticating user:", error);
-    res.status(500).send("Internal Server Error");
+    console.error("Error logging in:", error);
+    res.status(500).send({ message: "Internal Server Error", status: false });
   }
 });
 
